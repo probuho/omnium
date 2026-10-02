@@ -1,146 +1,308 @@
-# 🎬 Descargador de Videos Universal
+<p align="center">
+  <img src="assets/logo.svg" alt="Omnium Suite Logo" width="200"/>
+</p>
 
-¡Bienvenido al Descargador de Videos Universal! Este es un script de Python sencillo pero potente que te permite descargar videos de una amplia variedad de sitios web, gracias a la increíble biblioteca `yt-dlp`.
+<h1 align="center">Omnium Suite</h1>
+<p align="center">
+  <strong>Universal Video Downloader TUI</strong> — Terminal moderna, modular y extensible para descargar video, audio e imágenes de 1000+ sitios.
+</p>
 
----
+<p align="center">
+  <a href="https://github.com/probuho/omnium/actions/workflows/ci.yml">
+    <img src="https://github.com/probuho/omnium/actions/workflows/ci.yml/badge.svg" alt="CI Status"/>
+  </a>
+  <a href="https://github.com/probuho/omnium/releases/latest">
+    <img src="https://img.shields.io/github/v/release/probuho/omnium?label=version&color=783CBC" alt="Latest Release"/>
+  </a>
+  <a href="https://github.com/probuho/omnium/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/probuho/omnium?color=2DC9D1" alt="License"/>
+  </a>
+  <a href="https://github.com/probuho/omnium/stargazers">
+    <img src="https://img.shields.io/github/stars/probuho/omnium?style=social" alt="Stars"/>
+  </a>
+  <a href="https://github.com/probuho/omnium/issues">
+    <img src="https://img.shields.io/github/issues/probuho/omnium?color=FF585F" alt="Issues"/>
+  </a>
+  <br/>
+  <a href="https://github.com/probuho/omnium/actions/workflows/ci.yml">
+    <img src="https://img.shields.io/badge/ruff-passing-783CBC?logo=ruff&logoColor=white" alt="Ruff"/>
+  </a>
+  <a href="https://github.com/probuho/omnium/actions/workflows/ci.yml">
+    <img src="https://img.shields.io/badge/mypy-passing-2DC9D1?logo=mypy&logoColor=white" alt="MyPy"/>
+  </a>
+  <a href="https://github.com/probuho/omnium/actions/workflows/ci.yml">
+    <img src="https://img.shields.io/badge/pytest-19%20passed-FF585F?logo=pytest&logoColor=white" alt="Tests"/>
+  </a>
+  <a href="https://python.org">
+    <img src="https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white" alt="Python 3.11+"/>
+  </a>
+</p>
 
-## ✨ Características Principales
-
-- **Descarga Fácil**: Simplemente proporciona la URL del video.
-- **Alta Calidad**: Descarga videos en la mejor calidad MP4 disponible.
-- **Organización Automática**: Los videos se guardan ordenadamente en una carpeta `downloads`.
-- **Soporte Amplio**: Compatible con innumerables plataformas de video (YouTube, Vimeo, etc., gracias a `yt-dlp`).
-
----
-
-## 🛠️ Configuración del Entorno (con `pyenv`)
-
-Para asegurar un entorno de desarrollo limpio y evitar conflictos de dependencias, recomendamos encarecidamente usar `pyenv`.
-
-1.  **Verifica tu versión de Python con `pyenv`**:
-    Este proyecto está configurado para usar Python `3.11.9`. Puedes verificarlo con:
-
-    ```bash
-    pyenv versions
-    ```
-
-    Si no tienes `3.11.9` instalado, puedes instalarlo con:
-
-    ```bash
-    pyenv install 3.11.9
-    ```
-
-2.  **Establece la versión local de Python**:
-    Navega a la raíz de este proyecto y establece la versión de Python:
-
-    ```bash
-    cd C:\Users\Usuario\Desktop\Proyectos para mi\download videos
-    pyenv local 3.11.9
-    ```
-
-    Esto creará o actualizará el archivo `.python-version` en el directorio del proyecto.
-
-3.  **Activa el entorno virtual (opcional, pero recomendado)**:
-    Aunque `pyenv` ya gestiona la versión, puedes crear un entorno virtual específico si lo deseas (útil para aislar aún más las dependencias):
-    ```bash
-    python -m venv .venv
-    # En Windows:
-    .\.venv\Scripts\activate
-    # En macOS/Linux:
-    source ./.venv/bin/activate
-    ```
+<p align="center">
+  <img src="assets/demo.gif" alt="Omnium Suite Demo" width="800"/>
+</p>
 
 ---
 
-## 📦 Instalación de Dependencias
+## ✨ Características
 
-Una vez que tu entorno Python esté configurado, instala las bibliotecas necesarias:
+| Categoría | Detalles |
+|-----------|----------|
+| **Video** | YouTube, Vimeo, Twitch, TikTok, Twitter/X, Instagram, Facebook, Reddit, Pinterest, Dailymotion, Crunchyroll, Netflix*, Hulu*, HBO* y 1000+ más |
+| **Audio** | SoundCloud, Bandcamp, Mixcloud, Audiomack, Spotify (podcasts), Apple Music* |
+| **Imágenes** | Instagram, Pinterest, Twitter/X, Reddit, Tumblr, Imgur, etc. |
+| **Calidad** | 8K → 480p, audio VBR/320/256/192/128 kbps, formatos: MP4, MP3, M4A, OPUS, FLAC, WAV, JPG, PNG, WEBP |
+| **Autenticación** | `cookies.txt` para contenido privado/edad-restringido/streaming premium |
+
+> *Requiere `cookies.txt` con sesión válida
+
+---
+
+## 🚀 Instalación
+
+### Opción A: Instalación directa (recomendada)
+```bash
+pip install git+https://github.com/probuho/omnium.git
+```
+
+### Opción B: Desde código fuente
+```bash
+git clone https://github.com/probuho/omnium.git
+cd omnium
+pip install -e ".[dev]"
+```
+
+### Opción C: Ejecutable standalone (próximamente)
+```bash
+# pyinstaller --onefile --add-binary "ffmpeg.exe;." src/downloader_tui/__main__.py
+```
+
+> **Requisitos:** Python 3.11+, FFmpeg (incluido en el repo), `yt-dlp`, `textual`, `pyperclip`
+
+---
+
+## 🎮 Uso Rápido
 
 ```bash
-pip install -r requirements.txt
+# Lanzar TUI
+omnium
+
+# O directamente
+python -m downloader_tui
+```
+
+### Atajos Principales
+
+| Tecla | Acción |
+|-------|--------|
+| `Enter` | Descargar |
+| `Ctrl+V` | Pegar URL + detectar calidades |
+| `Tab` / `Shift+Tab` | Cambiar pestaña (Video/Audio/Imagen) |
+| `H` | Historial |
+| `S` | Configuración |
+| `I` | Sitios compatibles |
+| `A` | Accesibilidad (atajos) |
+| `C` | Créditos |
+| `ESC` | Volver / Salir |
+| `Q` | Salir |
+
+---
+
+## ⚙️ Configuración
+
+La configuración se guarda en `config.json` (persistente entre sesiones):
+
+```json
+{
+  "download_dir": "D:\\Vídeo",
+  "cookies_file": "cookies.txt",
+  "ffmpeg_dir": ".",
+  "theme": "textual-dark",
+  "video_quality": "bestvideo+bestaudio/best",
+  "audio_format": "m4a",
+  "audio_quality": "0",
+  "image_format": "jpg"
+}
+```
+
+### En la TUI (`S` → Configuración):
+- ✏️ Editar rutas de descargas, cookies, FFmpeg
+- 🎨 Cambiar tema (Oscuro/Claro/Sistema)
+- 💾 Guardar / 🔄 Restablecer defaults
+- 🔍 Verificar cookies / 📁 Abrir carpeta / 🧪 Probar FFmpeg
+- ♿ Accesibilidad (A) / 📜 Créditos (C)
+
+---
+
+## 📸 Capturas
+
+### Pantalla Principal
+```
+  ██████╗ ██████╗ ███╗   ███╗██████╗ ██╗     ██████╗  ██████╗ ████████╗███████╗
+ ██╔════╝██═══██╗████╗ ████║██══██╗██║     ██═══██╗██═══██╗╚══██══╝██════╝
+ ██║     ██║   ██║██╔████╔██║██████╔╝ ██║     ██║  ██║██║   ██║   ██║   ███████╗
+ ██║     ██═══██══╝██══════╝╚══════╝╚══════╝╚══════╝╚══════╝    ╚══════╝╚══════╝
+
+═══════════════════════════════════════════════════════════════════════════════
+
+URL:
+> https://youtube.com/watch?v=...  •  pegar con Ctrl+V
+✓ URL válida
+
+Video  Audio  Imagen
+
+Calidad y formato se configuran en Config (S)
+
+Descargar (Enter)  Limpiar (Ctrl+L)  Pegar (Ctrl+V)  Sitios (I)  Historial (H)  Config (S)
+
+🔒 Privacidad: Esta herramienta se ejecuta 100% en tu equipo...
+```
+
+### Modal de Calidades (Ctrl+V en URL válida)
+```
+┌──────────────────── Calidades Disponibles ────────────────────┐
+│ URL: https://youtube.com/watch?v=...                          │
+│ ✅ Se detectaron 12 formatos                                   │
+│ ┌────────────────────────────────────────────────────────────┐ │
+│ │ 1. ID: 137  Ext: mp4  Res: 1920x1080  (video only)        │ │
+│ │ 2. ID: 248  Ext: webm  Res: 1920x1080  (video only)       │ │
+│ │ 3. ID: 140  Ext: m4a  Res: audio only  (audio only)       │ │
+│ └────────────────────────────────────────────────────────────┘ │
+│ [Descargar] [Cancelar]                                         │
+└────────────────────────────────────────────────────────────────┘
+```
+
+### Configuración
+```
+┌─────────────────── Configuración ────────────────────┐
+│ Carpeta de descargas:                                 │
+│ [ D:\Vídeo                                    ]       │
+│ Archivo de cookies:                                   │
+│ [ cookies.txt                               ]        │
+│ Directorio FFmpeg:                                    │
+│ [ .                                               ]    │
+│ Tema:                                                 │
+│ ▸ Oscuro (textual-dark)                               │
+│   Claro (textual-light)                               │
+│   Sistema (textual-ansi)                              │
+│                                                       │
+│ [ Guardar ] [ Restablecer ]                           │
+│                                                       │
+│ [ Verificar cookies ] [ Abrir carpeta ] [ Probar FFmpeg ]│
+│ [ Accesibilidad (A) ] [ Creditos (C) ]               │
+│                                                       │
+│ ESC: Volver  |  A: Accesibilidad  |  C: Creditos      │
+└────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 🚀 Uso
-
-Para descargar un video, ejecuta el script `downloader.py` desde tu terminal. El script te pedirá la URL del video.
+## 🔧 Desarrollo
 
 ```bash
-python downloader.py
+# Instalar dependencias de desarrollo
+pip install -e ".[dev]"
+
+# Verificación completa
+make check        # lint + typecheck + test
+
+# Formateo
+make fmt
+
+# Tests
+make test
+
+# Type checking
+make typecheck
+
+# Linting
+make lint
 ```
 
-**Ejemplo de interacción:**
-
+### Estructura del Proyecto
 ```
-Por favor, introduce la URL del video y presiona Enter: https://www.youtube.com/watch?v=dQw4w9WgXcQ
-[*] Iniciando descarga desde: https://www.youtube.com/watch?v=dQw4w9WgXcQ
-... (progreso de descarga de yt-dlp) ...
-[+] Descarga completada con éxito.
-[*] El video se ha guardado en la carpeta 'downloads'.
+src/downloader_tui/
+├── app.py                 # App principal
+├── __main__.py            # Entry point (omnium)
+├── config.py              # Config JSON persistente
+├── constants/             # ASCII_LOGO, SITES_LIST, textos
+├── models/errors.py       # ErrorCategory, DownloadError
+├── services/
+│   ├── downloader.py      # run_download, build_yt_dlp_cmd
+│   ├── quality.py         # detect_available_formats
+│   ├── cookies.py         # validate_cookies_file
+│   └── ffmpeg.py          # test_ffmpeg
+├── screens/
+│   ├── main.py            # MainScreen (URL, tabs, botones)
+│   ├── sites.py           # SitesScreen
+│   ├── history.py         # HistoryScreen
+│   ├── settings.py        # SettingsScreen
+│   ├── accessibility.py   # AccessibilityScreen
+│   ├── credits.py         # CreditsScreen
+│   ├── base.py            # BaseScreen + nav-hint
+│   └── modals/
+│       ├── confirm.py     # ConfirmDialog
+│       └── quality.py     # QualityDetectionModal
+├── styles/css.py          # MONOKAI_CSS
+└── utils/validation.py    # URL validation
 ```
 
 ---
 
-## 💡 ¿Cómo Funciona?
+## 📋 Requisitos de `cookies.txt`
 
-El corazón de este script es la biblioteca `yt-dlp`. Cuando proporcionas una URL, `yt-dlp` se encarga de:
+Para contenido privado/edad-restringido/streaming premium:
 
-1.  **Analizar la página**: Identifica los flujos de video y audio disponibles.
-2.  **Seleccionar la mejor calidad**: Prioriza la descarga de la mejor calidad de video (MP4) y audio (M4A), fusionándolos si es necesario.
-3.  **Descargar**: Guarda el contenido en la carpeta `downloads` con un nombre de archivo limpio basado en el título del video.
-4.  **Manejo de Errores**: Incluye un manejo básico para errores de descarga.
+1. Instala extensión **Get cookies.txt LOCALLY** (Chrome/Firefox)
+2. Exporta cookies del sitio (YouTube, Instagram, etc.)
+3. Guarda como `cookies.txt` en la carpeta del proyecto
+4. Verifica en Config → **Verificar cookies**
 
----
-
-## 📂 Estructura del Proyecto
-
-```
-.
-├── .python-version      # Define la versión de Python para pyenv
-├── downloader.py        # El script principal para descargar videos
-├── README.md            # Este archivo
-├── requirements.txt     # Lista de dependencias del proyecto
-├── .git/                # Archivos de configuración de Git
-├── ffmpeg.exe           # Ejecutable de FFmpeg (necesario para fusionar video/audio)
-├── ffprobe.exe          # Ejecutable de FFprobe
-├── cookies.txt          # Archivo con cookies para autenticación
-└── downloads/           # Carpeta donde se guardarán los videos descargados
-```
+> ⚠️ **Privacidad:** El archivo `cookies.txt` NUNCA sale de tu equipo. Solo yt-dlp lo usa localmente.
 
 ---
 
-## 🍪 Configuración de Cookies (`cookies.txt`)
+## 🛡️ Privacidad
 
-Para descargar videos de sitios que requieren autenticación (como TikTok o YouTube con restricciones de edad), el script necesita un archivo `cookies.txt` en el mismo directorio.
-
-### Estructura del archivo
-
-El archivo debe estar en **formato Netscape**. Se ve algo así:
-
-```text
-# Netscape HTTP Cookie File
-# This file is generated by yt-dlp.  Do not edit.
-
-.tiktok.com	TRUE	/	TRUE	1792996326	ttwid	1%7CLYdPl6Ya...
-.youtube.com	TRUE	/	TRUE	1774668600	DEVICE_INFO	ChxOelUxTlRNME...
-```
-
-### ¿Cómo obtenerlo?
-
-1. Instala una extensión en tu navegador como **"Get cookies.txt LOCALLY"** (disponible para Chrome y Firefox).
-2. Inicia sesión en la plataforma (ej. TikTok).
-3. Haz clic en la extensión y selecciona **"Export cookies as Netscape format"**.
-4. Guarda el archivo como `cookies.txt` en la carpeta del proyecto.
-
----
-
-## 🤝 Contribuciones
-
-¡Las contribuciones son bienvenidas! Si tienes ideas para mejorar este script, no dudes en abrir un "issue" o enviar un "pull request".
+> **Esta herramienta se ejecuta 100% en tu equipo.**  
+> No se envían datos, URLs, ni credenciales a servidores externos.  
+> Solo `yt-dlp` (local) contacta directamente al sitio de origen para descargar el contenido que tú solicitas.
 
 ---
 
 ## 📄 Licencia
 
-Este proyecto está bajo la Licencia MIT. Consulta el archivo `LICENSE` para más detalles.
+MIT License — Ver [LICENSE](LICENSE) para detalles.
+
+---
+
+## 🙏 Créditos
+
+Desarrollado con:
+- [Textual](https://github.com/Textualize/textual) — TUI framework excelente
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp) — El mejor descargador de video/audio
+- [FFmpeg](https://ffmpeg.org/) — Procesamiento multimedia estándar
+
+---
+
+## 🤝 Contribuir
+
+1. Fork el repo
+2. Crea branch (`git checkout -b feature/nueva-funcion`)
+3. Commit (`git commit -m 'feat: nueva función'`)
+4. Push (`git push origin feature/nueva-funcion`)
+5. Abre Pull Request
+
+---
+
+## 📞 Soporte
+
+- 🐛 [Issues](https://github.com/probuho/omnium/issues) — Bugs y feature requests
+- 💬 [Discussions](https://github.com/probuho/omnium/discussions) — Preguntas y ayuda
+- 📖 [Wiki](https://github.com/probuho/omnium/wiki) — Documentación extendida
+
+---
+
+<p align="center">
+  <sub>Hecho con ❤️ para la comunidad — <a href="https://github.com/probuho">@probuho</a></sub>
+</p>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#AE81FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2DC9D1;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" rx="20" fill="#272822"/>
+  <text x="100" y="130" font-family="monospace" font-size="72" font-weight="bold" fill="url(#grad)" text-anchor="middle" dominant-baseline="middle">O</text>
+  <text x="100" y="165" font-family="monospace" font-size="14" fill="#75715e" text-anchor="middle" letter-spacing="2">OMNIUM</text>
+  <text x="100" y="182" font-family="monospace" font-size="10" fill="#595849" text-anchor="middle">SUITE</text>
+</svg>
