@@ -7,8 +7,8 @@ def download_video(url):
     Downloads a video from the given URL using yt-dlp,
     authenticating with a cookies.txt file.
     """
-    # Create a 'downloads' directory if it doesn't exist
-    download_folder = 'downloads'
+    # Create downloads directory in D:\Vídeo
+    download_folder = r'D:\Vídeo'
     if not os.path.exists(download_folder):
         os.makedirs(download_folder)
 
@@ -30,7 +30,7 @@ def download_video(url):
         'no_warnings': True,
         'cookiefile': cookies_file,
         'overwrites': True,
-        'ffmpeg_location': os.getcwd(), # Use ffmpeg from the current directory
+        'ffmpeg_location': os.path.dirname(os.path.abspath(__file__)), # Use ffmpeg from script directory
         'postprocessors': [{
             'key': 'FFmpegVideoConvertor',
             'preferedformat': 'mp4',
@@ -39,7 +39,8 @@ def download_video(url):
 
     try:
         print(f"[*] Usando el archivo de cookies: {cookies_file}")
-        print(f"[*] Usando ffmpeg en: {os.getcwd()}")
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        print(f"[*] Usando ffmpeg en: {script_dir}")
         print(f"[*] Iniciando descarga desde: {url}")
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
