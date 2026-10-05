@@ -2,7 +2,7 @@
   "download_dir": "D:\\Vídeo",
   "cookies_file": "C:\\Users\\anton\\Tools\\Downloader-video-universal\\cookies.txt",
   "ffmpeg_dir": "C:\\Users\\anton\\Tools\\Downloader-video-universal",
-  "theme": "textual-dark",
+  "theme": "textual-ansi",
   "video_quality": "bestvideo+bestaudio/best",
   "audio_format": "m4a",
   "audio_quality": "0",
