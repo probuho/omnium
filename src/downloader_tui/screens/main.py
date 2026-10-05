@@ -100,7 +100,7 @@ class MainScreen(BaseScreen):
             Collapsible(
                 Log(id="download_log", classes="log"),
                 title="Log de descarga",
-                collapsed=True,
+                collapsed=False,
                 id="log_collapsible"
             ),
             Static(
@@ -355,6 +355,9 @@ class MainScreen(BaseScreen):
                 self.log_widget.write_line(f"[red]{error.message}[/red]")
                 self.log_widget.write_line(f"[yellow]Sugerencia:[/yellow] {error.suggestion}")
                 self.app.notify(f"{error.message}: {error.suggestion}", severity="error")
+                # Auto-expand log to show error
+                log_collapsible = self.query_one("#log_collapsible", Collapsible)
+                log_collapsible.collapsed = False
 
         except asyncio.CancelledError:
             self.status.update("[yellow]Descarga cancelada[/yellow]")
@@ -367,6 +370,9 @@ class MainScreen(BaseScreen):
             self.status.update(f"[red]{error.message}[/red]")
             self.log_widget.write_line(f"[red]{error.message}[/red]")
             self.log_widget.write_line(f"[yellow]Sugerencia:[/yellow] {error.suggestion}")
+            self.app.notify(f"{error.message}: {error.suggestion}", severity="error")
+            log_collapsible = self.query_one("#log_collapsible", Collapsible)
+            log_collapsible.collapsed = False
         finally:
             self.downloading = False
             self.download_btn.disabled = False
