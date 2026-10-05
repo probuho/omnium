@@ -29,7 +29,7 @@ def load_config() -> dict[str, Any]:
 
     if CONFIG_FILE.exists():
         try:
-            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+            with open(CONFIG_FILE, encoding="utf-8") as f:
                 loaded = json.load(f)
         except (json.JSONDecodeError, OSError):
             loaded = {}

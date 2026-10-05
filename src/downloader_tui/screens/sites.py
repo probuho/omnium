@@ -8,7 +8,7 @@ from ...constants import SITES_LIST
 from ..base import BaseScreen
 
 
-class SitesScreen(BaseScreen):
+class SitesScreen(BaseScreen):  # type: ignore[misc]
     """Pantalla de sitios compatibles."""
 
     BINDINGS = [

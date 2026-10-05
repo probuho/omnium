@@ -10,7 +10,7 @@ from ...config import get_download_dir
 from ..base import BaseScreen
 
 
-class HistoryScreen(BaseScreen):
+class HistoryScreen(BaseScreen):  # type: ignore[misc]
     """Pantalla de historial de descargas."""
 
     BINDINGS = [

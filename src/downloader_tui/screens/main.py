@@ -1,5 +1,6 @@
 """Pantalla principal con input URL, tabs y botones."""
 
+import asyncio
 import re
 from typing import Literal
 

@@ -15,7 +15,7 @@ from ..config import (
     get_image_format,
     get_video_quality,
 )
-from ..models.errors import DownloadError, classify_error
+from ..models.errors import DownloadError, ErrorCategory, classify_error
 
 MediaType = Literal["video", "audio", "image"]
 

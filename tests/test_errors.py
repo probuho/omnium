@@ -34,9 +34,9 @@ def test_download_error_dataclass():
     # Verificar frozen (inmutable)
     try:
         error.message = "changed"
-        assert False, "Deberia ser frozen"
-    except Exception:
-        pass  # Esperado
+        raise AssertionError("Deberia ser frozen")
+    except (AssertionError, Exception):
+        pass  # Esperado - frozen instance error expected
 
 
 def test_error_mappings_structure():

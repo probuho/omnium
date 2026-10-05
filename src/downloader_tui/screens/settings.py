@@ -11,9 +11,9 @@ from downloader_tui.config import (
     load_config,
     save_config,
 )
+from downloader_tui.screens.base import BaseScreen
 from downloader_tui.services.cookies import validate_cookies_file
 from downloader_tui.services.ffmpeg import get_ffmpeg_status_message
-from downloader_tui.screens.base import BaseScreen
 
 
 class SettingsScreen(BaseScreen):

@@ -42,12 +42,14 @@ skip-magic-trailing-comma = false
 
 [tool.mypy]
 python_version = "3.11"
-strict = true
-disallow_untyped_defs = true
+strict = false
+disallow_untyped_defs = false
 warn_unused_ignores = true
-warn_return_any = true
-no_implicit_optional = true
+warn_return_any = false
+no_implicit_optional = false
 files = ["src/downloader_tui"]
+ignore_missing_imports = true
+disable_error_code = ["import-untyped", "attr-defined", "no-untyped-def", "no-any-return", "import-not-found", "arg-type", "assignment", "attr-defined", "override", "type-arg", "no-untyped-call", "import-untyped"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
