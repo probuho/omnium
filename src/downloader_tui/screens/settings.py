@@ -151,11 +151,11 @@ class SettingsScreen(BaseScreen):
     def _open_folder(self):
         try:
             import os
+            import subprocess
             download_dir = get_download_dir()
             if os.name == 'nt':
                 os.startfile(download_dir)
             else:
-                import subprocess
                 subprocess.run(["xdg-open", str(download_dir)])
             self.config_status.update("[green]Carpeta abierta[/green]")
         except Exception as e:

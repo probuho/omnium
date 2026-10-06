@@ -10,7 +10,7 @@ Screen {
     text-align: center;
     color: #ae81ff;
     padding: 1 0;
-    height: 8;
+    height: auto;
     overflow: hidden;
 }
 
@@ -167,7 +167,7 @@ OptionList > .option-list--option-highlighted {
 }
 
 .log {
-    height: 18;
+    height: 12;
     background: #1e1f1c;
     border: solid #75715e;
     color: #f8f8f2;
@@ -252,7 +252,7 @@ Header {
     background: #272822;
     color: #75715e;
     border: solid #75715e;
-    height: 1.
+    height: 2;
 }
 
 Footer {

@@ -41,7 +41,7 @@ class HistoryScreen(BaseScreen):  # type: ignore[misc]
         download_dir = get_download_dir()
         if download_dir.exists():
             files = sorted(
-                download_dir.glob("*"),
+                (f for f in download_dir.glob("*") if f.is_file()),
                 key=lambda f: f.stat().st_mtime,
                 reverse=True
             )

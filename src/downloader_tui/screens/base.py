@@ -26,16 +26,12 @@ class BaseScreen(Screen):
 
     def action_cursor_up(self) -> None:
         """Navegar arriba (para listas/tablas)."""
-        # Implementar en subclases
 
     def action_cursor_down(self) -> None:
         """Navegar abajo (para listas/tablas)."""
-        # Implementar en subclases
 
     def action_cursor_left(self) -> None:
         """Navegar izquierda (para tabs/botones)."""
-        # Implementar en subclases
 
     def action_cursor_right(self) -> None:
         """Navegar derecha (para tabs/botones)."""
-        # Implementar en subclases

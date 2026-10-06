@@ -51,7 +51,6 @@ def build_yt_dlp_cmd(
             "--audio-quality", quality,
         ])
     elif media_type == "image":
-        # Pinterest: descargar imagen original directa sin thumbnail conversion
         if "pinterest.com" in url or "pin.it" in url:
             cmd.extend(["--format", "best"])
         else:
@@ -60,13 +59,6 @@ def build_yt_dlp_cmd(
                 "--format", fmt,
                 "--write-thumbnail", "--convert-thumbnails", fmt,
             ])
-    elif media_type == "video":
-        # Pinterest video: usar formato best para obtener la mejor calidad
-        if "pinterest.com" in url or "pin.it" in url:
-            cmd.extend(["--format", "best", "--merge-output-format", "mp4"])
-        else:
-            fmt = video_quality or get_video_quality()
-            cmd.extend(["--format", fmt, "--merge-output-format", "mp4"])
 
     return cmd
 
@@ -80,9 +72,10 @@ def add_common_args(cmd: list[str], url: str, use_cookies: bool) -> list[str]:
     if use_cookies and cookies_file.exists():
         cmd.extend(["--cookies", str(cookies_file)])
 
+    safe_title = "%(playlist_index)s - %(title).%(ext)s"
     cmd.extend([
         "--ffmpeg-location", str(ffmpeg_dir),
-        "--output", str(download_dir / "%(playlist_index)s - %(title)s.%(ext)s"),
+        "--output", str(download_dir / safe_title),
         "--no-warnings",
         "--newline",
         url
@@ -122,7 +115,7 @@ async def run_download(
         stdout, stderr = await process.communicate()
 
         if process.returncode == 0:
-            files = list(download_dir.glob("*"))
+            files = [f for f in download_dir.glob("*") if f.is_file()]
             if files:
                 latest = max(files, key=lambda f: f.stat().st_mtime)
                 return DownloadResult(

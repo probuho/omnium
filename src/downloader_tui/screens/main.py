@@ -4,6 +4,7 @@ import asyncio
 import re
 from typing import Literal
 
+import pyperclip
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Container, Horizontal, Vertical
@@ -24,9 +25,10 @@ from downloader_tui.config import (
     get_download_dir,
     get_image_format,
     get_video_quality,
+    load_config,
 )
 from downloader_tui.constants import ASCII_LOGO
-from downloader_tui.models.errors import DownloadError
+from downloader_tui.models.errors import DownloadError, ErrorCategory
 from downloader_tui.screens.base import BaseScreen
 from downloader_tui.screens.modals import QualityDetectionModal
 from downloader_tui.services.downloader import run_download
@@ -64,11 +66,11 @@ class MainScreen(BaseScreen):
         yield Header(show_clock=True)
         yield Container(
             Static(ASCII_LOGO, classes="ascii-logo"),
-            Static("═" * 80, classes="divider"),
+            Static("=" * 80, classes="divider"),
             Vertical(
                 Static("[bold]URL:[/bold]", classes="url-label"),
                 Input(
-                    placeholder="https://youtube.com/watch?v=...  •  pegar con Ctrl+V",
+                    placeholder="https://youtube.com/watch?v=...  [pegar con Ctrl+V]",
                     id="url_input"
                 ),
                 Static("", id="url_validation", classes="validation"),
@@ -78,7 +80,7 @@ class MainScreen(BaseScreen):
                 ),
                 classes="input-group"
             ),
-            Static("─" * 80, classes="divider"),
+            Static("-" * 80, classes="divider"),
             Horizontal(
                 Button("Video", id="tab_video", variant="primary"),
                 Button("Audio", id="tab_audio", variant="default"),
@@ -86,7 +88,7 @@ class MainScreen(BaseScreen):
                 classes="tab-group"
             ),
             Static("[dim]Calidad y formato se configuran en Config (S)[/dim]", classes="sites-hint"),
-            Static("─" * 80, classes="divider"),
+            Static("-" * 80, classes="divider"),
             Horizontal(
                 Button("Descargar (Enter)", variant="primary", id="download_btn"),
                 Button("Limpiar (Ctrl+L)", variant="default", id="clear_btn"),
@@ -247,14 +249,13 @@ class MainScreen(BaseScreen):
 
     def on_button_focus(self, event) -> None:
         for i, btn in enumerate(self.buttons):
-            if btn == event.widget:
+            if btn is event.widget:
                 self.focus_index = i
                 self._update_button_focus()
                 break
 
     def _paste(self) -> None:
         try:
-            import pyperclip
             text = pyperclip.paste().strip()
             if text and self._validate_url(text):
                 self.url_input.value = text
@@ -272,7 +273,6 @@ class MainScreen(BaseScreen):
 
     def action_copy(self) -> None:
         try:
-            import pyperclip
             pyperclip.copy(self.url_input.value)
             self.notify("Copiado al portapapeles", severity="information")
         except ImportError:
@@ -294,7 +294,7 @@ class MainScreen(BaseScreen):
         if self.downloading:
             return
 
-        use_cookies = True  # Siempre intentar con cookies si existen
+        use_cookies = load_config().get("use_cookies", True)
 
         fmt, quality = self._get_selected_format()
         self.downloading = True
@@ -348,7 +348,7 @@ class MainScreen(BaseScreen):
                 self.progress_bar.progress = 100
             else:
                 error = result.error or DownloadError(
-                    category=None,
+                    category=ErrorCategory.UNKNOWN,
                     message="Error desconocido",
                     suggestion="Revisa el log para mas detalles"
                 )
@@ -364,7 +364,7 @@ class MainScreen(BaseScreen):
             self.status.update("[yellow]Descarga cancelada[/yellow]")
         except Exception as e:
             error = DownloadError(
-                category=None,
+                category=ErrorCategory.UNKNOWN,
                 message=str(e),
                 suggestion="Revisa el log para mas detalles"
             )
