@@ -15,6 +15,7 @@ from ..config import (
     get_image_format,
     get_video_quality,
 )
+from ..logger import logger
 from ..models.errors import DownloadError, ErrorCategory, classify_error
 
 MediaType = Literal["video", "audio", "image"]
@@ -93,6 +94,7 @@ async def run_download(
     image_format: str | None = None,
 ) -> DownloadResult:
     """Ejecuta la descarga y retorna resultado."""
+    logger.info(f"run_download called: url={url[:80]}, media_type={media_type}")
     cmd = build_yt_dlp_cmd(
         url, media_type,
         video_quality=video_quality,
@@ -106,6 +108,7 @@ async def run_download(
     script_dir = Path(__file__).parent.parent.parent
 
     try:
+        logger.info(f"Executing command: {' '.join(cmd)}")
         process = await asyncio.create_subprocess_exec(
             *cmd,
             stdout=asyncio.subprocess.PIPE,
@@ -113,11 +116,13 @@ async def run_download(
             cwd=str(script_dir)
         )
         stdout, stderr = await process.communicate()
+        logger.info(f"Process completed: returncode={process.returncode}")
 
         if process.returncode == 0:
             files = [f for f in download_dir.glob("*") if f.is_file()]
             if files:
                 latest = max(files, key=lambda f: f.stat().st_mtime)
+                logger.info(f"Download successful: {latest.name}")
                 return DownloadResult(
                     success=True,
                     file_path=latest,
@@ -132,6 +137,7 @@ async def run_download(
             )
         else:
             error_text = stderr.decode(errors="ignore") if stderr else "Error desconocido"
+            logger.error(f"Download failed: {error_text[:200]}")
             error = classify_error(error_text)
             return DownloadResult(
                 success=False,

@@ -11,6 +11,7 @@ from downloader_tui.config import (
     load_config,
     save_config,
 )
+from downloader_tui.logger import logger
 from downloader_tui.screens.base import BaseScreen
 from downloader_tui.services.cookies import validate_cookies_file
 from downloader_tui.services.ffmpeg import get_ffmpeg_status_message
@@ -97,6 +98,7 @@ class SettingsScreen(BaseScreen):
             self.theme_selector.index = theme_map[current_theme]
 
     def on_option_list_option_selected(self, event: OptionList.OptionSelected):
+        logger.info(f"Theme selected: {event.option.prompt}")
         if event.option_list.id == "theme_selector":
             theme_map = {0: "textual-dark", 1: "textual-light", 2: "textual-ansi"}
             theme = theme_map.get(event.option_index, "textual-dark")
@@ -107,6 +109,7 @@ class SettingsScreen(BaseScreen):
             self.app.notify(f"Tema: {event.option.prompt}", severity="information")
 
     def on_button_pressed(self, event: Button.Pressed):
+        logger.info(f"Settings button pressed: {event.button.id}")
         if event.button.id == "check_cookies":
             self._check_cookies()
         elif event.button.id == "open_folder":
@@ -123,6 +126,7 @@ class SettingsScreen(BaseScreen):
             self.action_credits()
 
     def _save_config(self):
+        logger.info("Saving configuration")
         config = load_config()
         config["download_dir"] = self.query_one("#download_dir_input", Input).value
         config["cookies_file"] = self.query_one("#cookies_file_input", Input).value
@@ -132,6 +136,7 @@ class SettingsScreen(BaseScreen):
         self.app.notify("Configuracion guardada correctamente", severity="information")
 
     def _reset_config(self):
+        logger.info("Resetting configuration to defaults")
         save_config(DEFAULT_CONFIG)
         self.query_one("#download_dir_input", Input).value = DEFAULT_CONFIG["download_dir"]
         self.query_one("#cookies_file_input", Input).value = DEFAULT_CONFIG["cookies_file"]

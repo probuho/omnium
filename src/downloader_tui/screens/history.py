@@ -6,8 +6,9 @@ from textual.binding import Binding
 from textual.containers import Container
 from textual.widgets import DataTable, Footer, Header, Static
 
-from ...config import get_download_dir
 from ..base import BaseScreen
+from ..config import get_download_dir
+from ..logger import logger
 
 
 class HistoryScreen(BaseScreen):  # type: ignore[misc]
@@ -32,11 +33,13 @@ class HistoryScreen(BaseScreen):  # type: ignore[misc]
         yield Footer()
 
     def on_mount(self):
+        logger.info("HistoryScreen mounted")
         self.table = self.query_one("#history_table", DataTable)
         self.table.add_columns("Fecha", "Archivo", "Tamaño")
         self.action_refresh()
 
     def action_refresh(self):
+        logger.info("Refreshing history")
         self.table.clear()
         download_dir = get_download_dir()
         if download_dir.exists():
@@ -59,6 +62,7 @@ class HistoryScreen(BaseScreen):  # type: ignore[misc]
         return f"{bytes_:.1f} TB"
 
     def action_delete_file(self):
+        logger.info("Delete file requested")
         if self.table.cursor_row is not None:
             row = self.table.get_row_at(self.table.cursor_row)
             if row:

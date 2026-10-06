@@ -4,8 +4,9 @@ from textual.binding import Binding
 from textual.containers import Container
 from textual.widgets import Footer, Header, Static
 
-from ...constants import SITES_LIST
 from ..base import BaseScreen
+from ..constants import SITES_LIST
+from ..logger import logger
 
 
 class SitesScreen(BaseScreen):  # type: ignore[misc]
@@ -18,6 +19,7 @@ class SitesScreen(BaseScreen):  # type: ignore[misc]
     ]
 
     def compose(self):
+        logger.info("SitesScreen composed")
         yield Header(show_clock=True)
         yield Container(
             Static("[bold]Sitios Compatibles (1000+)[/bold]", classes="title"),

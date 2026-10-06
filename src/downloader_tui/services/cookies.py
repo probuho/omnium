@@ -1,6 +1,7 @@
 """Servicio de validación de cookies."""
 
 from ..config import get_cookies_file
+from ..logger import logger
 
 
 def validate_cookies_file() -> tuple[bool, int, str]:
@@ -11,6 +12,7 @@ def validate_cookies_file() -> tuple[bool, int, str]:
         tuple: (existe, cantidad_cookies, mensaje)
     """
     cookies_file = get_cookies_file()
+    logger.info(f"Validating cookies file: {cookies_file}")
 
     if not cookies_file.exists():
         return False, 0, "cookies.txt NO encontrado"

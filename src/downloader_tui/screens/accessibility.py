@@ -5,6 +5,7 @@ from textual.containers import Container
 from textual.widgets import Footer, Header, Static
 
 from downloader_tui.constants import ACCESSIBILITY_TEXT
+from downloader_tui.logger import logger
 from downloader_tui.screens.base import BaseScreen
 
 
@@ -18,6 +19,7 @@ class AccessibilityScreen(BaseScreen):
     ]
 
     def compose(self):
+        logger.info("AccessibilityScreen composed")
         yield Header(show_clock=True)
         yield Container(
             Static("[bold]Accesibilidad - Atajos de Teclado[/bold]", classes="title"),

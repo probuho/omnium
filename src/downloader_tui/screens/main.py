@@ -28,6 +28,7 @@ from downloader_tui.config import (
     load_config,
 )
 from downloader_tui.constants import ASCII_LOGO
+from downloader_tui.logger import logger
 from downloader_tui.models.errors import DownloadError, ErrorCategory
 from downloader_tui.screens.base import BaseScreen
 from downloader_tui.screens.modals import QualityDetectionModal
@@ -70,7 +71,7 @@ class MainScreen(BaseScreen):
             Vertical(
                 Static("[bold]URL:[/bold]", classes="url-label"),
                 Input(
-                    placeholder="https://youtube.com/watch?v=...  [pegar con Ctrl+V]",
+                    placeholder="https://youtube.com/watch?v=...",
                     id="url_input"
                 ),
                 Static("", id="url_validation", classes="validation"),
@@ -116,6 +117,7 @@ class MainScreen(BaseScreen):
         yield Footer()
 
     def on_mount(self) -> None:
+        logger.info("MainScreen mounted")
         self.url_input = self.query_one("#url_input", Input)
         self.url_validation = self.query_one("#url_validation", Static)
         self.progress_bar = self.query_one("#progress", ProgressBar)
@@ -203,6 +205,7 @@ class MainScreen(BaseScreen):
 
     def on_input_changed(self, event: Input.Changed) -> None:
         url = event.value.strip()
+        logger.debug(f"Input changed: {url[:50]}...")
         if url:
             is_valid = self._validate_url(url)
             if is_valid:
@@ -228,6 +231,7 @@ class MainScreen(BaseScreen):
         return any(re.match(p, url) for p in patterns)
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
+        logger.info(f"Button pressed: {event.button.id}")
         if event.button.id == "download_btn":
             self.action_download()
         elif event.button.id == "clear_btn":
@@ -288,6 +292,7 @@ class MainScreen(BaseScreen):
 
     def action_download(self) -> None:
         url = self.url_input.value.strip()
+        logger.info(f"Download requested for: {url[:80]}")
         if not url:
             self.status.update("[red] Ingresa una URL[/red]")
             return
@@ -326,6 +331,7 @@ class MainScreen(BaseScreen):
         return get_video_quality(), "auto"
 
     async def _do_download(self, url: str, use_cookies: bool, fmt: str, quality: str) -> None:
+        logger.info(f"Starting download: url={url[:80]}, media={self.current_media}, fmt={fmt}, quality={quality}")
         try:
             result = await run_download(
                 url=url,
@@ -337,6 +343,7 @@ class MainScreen(BaseScreen):
                 image_format=fmt if self.current_media == "image" else None,
             )
 
+            logger.info(f"Download result: success={result.success}, file={result.file_path}, error={result.error}")
             if result.success:
                 if result.file_path:
                     self.status.update("[green]Descarga completada[/green]")
@@ -361,8 +368,10 @@ class MainScreen(BaseScreen):
                 log_collapsible.collapsed = False
 
         except asyncio.CancelledError:
+            logger.warning("Download cancelled")
             self.status.update("[yellow]Descarga cancelada[/yellow]")
         except Exception as e:
+            logger.exception(f"Download failed: {e}")
             error = DownloadError(
                 category=ErrorCategory.UNKNOWN,
                 message=str(e),
@@ -380,10 +389,12 @@ class MainScreen(BaseScreen):
             self.download_btn.label = "Descargar (Enter)"
 
     def action_sites(self) -> None:
+        logger.info("Navigating to SitesScreen")
         from .sites import SitesScreen
         self.app.push_screen(SitesScreen())
 
     def action_history(self) -> None:
+        logger.info("Navigating to HistoryScreen")
         from .history import HistoryScreen
         self.app.push_screen(HistoryScreen())
 

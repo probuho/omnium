@@ -3,6 +3,7 @@
 import asyncio
 
 from ..config import get_ffmpeg_dir
+from ..logger import logger
 
 
 async def test_ffmpeg() -> tuple[bool, str]:
@@ -28,11 +29,13 @@ async def test_ffmpeg() -> tuple[bool, str]:
 
         if process.returncode == 0:
             version_line = stdout.decode(errors="ignore").split("\n")[0]
+            logger.info(f"FFmpeg OK: {version_line}")
             return True, f"FFmpeg OK: {version_line}"
         else:
             error = stderr.decode(errors="ignore")
             return False, f"FFmpeg error: {error}"
     except Exception as e:
+        logger.error(f"FFmpeg test failed: {e}")
         return False, f"Error ejecutando FFmpeg: {e}"
 
 

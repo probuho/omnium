@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Literal
 
 from ..config import get_cookies_file
+from ..logger import logger
 
 MediaType = Literal["video", "audio", "image"]
 
@@ -103,6 +104,7 @@ async def detect_available_formats(
     use_cookies: bool = True,
 ) -> list[FormatInfo]:
     """Detecta formatos disponibles para una URL."""
+    logger.info(f"detect_available_formats: url={url[:80]}, media_type={media_type}")
     cmd = [
         sys.executable, "-m", "yt_dlp",
         "--list-formats",
@@ -127,10 +129,13 @@ async def detect_available_formats(
 
         if process.returncode != 0:
             error = stderr.decode(errors="ignore") if stderr else "Error desconocido"
+            logger.error(f"Format detection failed: {error[:200]}")
             raise RuntimeError(f"Error detectando formatos: {error}")
 
         output = stdout.decode(errors="ignore")
-        return parse_formats_output(output)
+        formats = parse_formats_output(output)
+        logger.info(f"Detected {len(formats)} formats")
+        return formats
     except Exception as e:
         raise RuntimeError(f"Error detectando formatos: {e}") from e
 
