@@ -10,6 +10,11 @@ CONFIG_FILE = SCRIPT_DIR / "config.json"
 DEFAULT_CONFIG = {
     "download_dir": r"D:\Vídeo",
     "cookies_file": str(SCRIPT_DIR / "cookies.txt"),
+    # Navegador del que yt-dlp lee las cookies directamente (chrome, edge,
+    # firefox, brave, opera, vivaldi...). Vacio = usar cookies_file. Es la
+    # solucion al "Sign in to confirm you're not a bot" de YouTube: el archivo
+    # cookies.txt se queda viejo y hay que reexportarlo a mano.
+    "cookies_from_browser": "",
     "ffmpeg_dir": str(SCRIPT_DIR),
     "theme": "textual-dark",
     "video_quality": "bestvideo+bestaudio/best",

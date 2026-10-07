@@ -31,9 +31,11 @@ where = ["src"]
 [tool.ruff]
 target-version = "py311"
 line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
 select = ["E", "F", "I", "W", "UP", "B", "C4", "SIM", "T20", "PTH"]
 ignore = ["E501", "PTH118", "PTH123"]
-src = ["src", "tests"]
 
 [tool.ruff.format]
 quote-style = "single"

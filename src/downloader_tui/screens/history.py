@@ -3,15 +3,14 @@
 from datetime import datetime
 
 from textual.binding import Binding
-from textual.containers import Container
-from textual.widgets import DataTable, Footer, Header, Static
+from textual.widgets import DataTable, Static
 
-from ..base import BaseScreen
 from ..config import get_download_dir
 from ..logger import logger
+from .base import BaseScreen
 
 
-class HistoryScreen(BaseScreen):  # type: ignore[misc]
+class HistoryScreen(BaseScreen):
     """Pantalla de historial de descargas."""
 
     BINDINGS = [
@@ -23,14 +22,11 @@ class HistoryScreen(BaseScreen):  # type: ignore[misc]
     ]
 
     def compose(self):
-        yield Header(show_clock=True)
-        yield Container(
+        yield from self.compose_pantalla(
             Static("[bold]Historial de Descargas[/bold]", classes="title"),
             DataTable(id="history_table", cursor_type="row"),
             self.compose_nav_hint("ESC: Volver  |  R: Actualizar  |  Del: Eliminar  |  Flechas: Navegar"),
-            classes="main-container"
         )
-        yield Footer()
 
     def on_mount(self):
         logger.info("HistoryScreen mounted")

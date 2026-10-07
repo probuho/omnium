@@ -1,8 +1,7 @@
 """Pantalla de créditos."""
 
 from textual.binding import Binding
-from textual.containers import Container
-from textual.widgets import Footer, Header, Static
+from textual.widgets import Static
 
 from downloader_tui.constants import CREDITS_TEXT
 from downloader_tui.logger import logger
@@ -20,11 +19,8 @@ class CreditsScreen(BaseScreen):
 
     def compose(self):
         logger.info("CreditsScreen composed")
-        yield Header(show_clock=True)
-        yield Container(
+        yield from self.compose_pantalla(
             Static("[bold]Creditos[/bold]", classes="title"),
             Static(CREDITS_TEXT, classes="sites-content"),
             self.compose_nav_hint("ESC: Volver  |  Flechas: Scroll"),
-            classes="main-container"
         )
-        yield Footer()

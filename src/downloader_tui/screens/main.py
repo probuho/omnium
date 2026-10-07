@@ -2,9 +2,11 @@
 
 import asyncio
 import re
+import time
 from typing import Literal
 
 import pyperclip
+from rich.text import Text
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Container, Horizontal, Vertical
@@ -14,8 +16,8 @@ from textual.widgets import (
     Footer,
     Header,
     Input,
-    Log,
     ProgressBar,
+    RichLog,
     Static,
 )
 
@@ -32,7 +34,8 @@ from downloader_tui.logger import logger
 from downloader_tui.models.errors import DownloadError, ErrorCategory
 from downloader_tui.screens.base import BaseScreen
 from downloader_tui.screens.modals import QualityDetectionModal
-from downloader_tui.services.downloader import run_download
+from downloader_tui.services.downloader import DownloadProgress, run_download
+from downloader_tui.utils import formatear_bytes, formatear_eta, formatear_velocidad
 
 MediaType = Literal["video", "audio", "image"]
 
@@ -40,11 +43,17 @@ MediaType = Literal["video", "audio", "image"]
 class MainScreen(BaseScreen):
     """Pantalla principal: input URL, tabs Video/Audio/Imagen, botones."""
 
+    # AUTO_FOCUS vacio y el umbral de centrado vertical vienen de BaseScreen.
+    # Aqui el foco lo pone _initial_focus, que no desplaza el area.
+
     BINDINGS = [
         Binding("escape", "quit", "Salir"),
         Binding("enter", "download", "Descargar"),
         Binding("ctrl+v", "paste", "Pegar"),
-        Binding("ctrl+c", "copy", "Copiar"),
+        # Ctrl+C copia el LOG, que es lo que se quiere casi siempre (por ejemplo
+        # para pegarlo en un informe). Copiar la URL pasa a Ctrl+U.
+        Binding("ctrl+c", "copiar_log", "Copiar log"),
+        Binding("ctrl+u", "copy", "Copiar URL"),
         Binding("ctrl+l", "clear", "Limpiar"),
         Binding("h", "history", "Historial"),
         Binding("s", "settings", "Config"),
@@ -64,55 +73,96 @@ class MainScreen(BaseScreen):
     ]
 
     def compose(self) -> ComposeResult:
+        # El logo va DENTRO del area desplazable, como parte del bloque, para que
+        # se centre junto al formulario: antes vivia fuera y quedaba clavado
+        # arriba mientras el resto flotaba, que es lo que hacia la composicion
+        # cabecera-pesada.
         yield Header(show_clock=True)
-        yield Container(
-            Static(ASCII_LOGO, classes="ascii-logo"),
-            Static("=" * 80, classes="divider"),
-            Vertical(
-                Static("[bold]URL:[/bold]", classes="url-label"),
-                Input(
-                    placeholder="https://youtube.com/watch?v=...",
-                    id="url_input"
+        # La columna del formulario se centra con esta envoltura intermedia.
+        # Con hermanos presentes (Header, Footer), el align-horizontal del Screen
+        # deja de centrar (medido: el contenedor quedaba en x=0 a 120 columnas);
+        # el hijo unico de esta envoltura si se centra.
+        yield Vertical(
+            Container(
+                # Espaciadores elasticos: se reparten el alto sobrante arriba y
+                # abajo a partes iguales, asi que el bloque queda centrado
+                # verticalmente en vez de amontonado arriba. Cuando no sobra
+                # altura (80x24) se quedan en 0 y el area solo se desplaza.
+                Static("", classes="relleno-flexible"),
+                Static(ASCII_LOGO, classes="ascii-logo"),
+                Vertical(
+                    Input(
+                        placeholder="Pegar enlace aquí...",
+                        id="url_input"
+                    ),
+                    Static("", id="url_validation", classes="validation"),
+                    Static(
+                        "[dim]Instagram, TikTok, YouTube, X, Facebook, Reddit, Pinterest, SoundCloud y 1000+ sitios[/dim]",
+                        classes="sites-hint"
+                    ),
+                    classes="input-group"
                 ),
-                Static("", id="url_validation", classes="validation"),
+                Static("-" * 200, classes="divider"),
+                # Cada fila a centrar lleva su propia envoltura: con varios
+                # hermanos, el align-horizontal del contenedor padre NO centra al
+                # hijo (comprobado con una prueba minima); el hijo unico de esta
+                # envoltura si.
+                Vertical(
+                    Horizontal(
+                        Button("Video", id="tab_video", variant="primary"),
+                        Button("Audio", id="tab_audio", variant="default"),
+                        Button("Imagen", id="tab_image", variant="default"),
+                        classes="tab-group"
+                    ),
+                    classes="fila-centrada",
+                ),
+                Static("-" * 200, classes="divider"),
+                # Etiquetas cortas a proposito: con los textos largos
+                # ("Descargar (Enter)" = 21 columnas) la fila medía 113 columnas
+                # y a 80 los botones Historial y Config quedaban fuera de
+                # pantalla, sin forma de pulsarlos con el raton. Los atajos
+                # siguen en el pie y en la pantalla de Accesibilidad (A).
+                Vertical(
+                    Horizontal(
+                        Button("Descargar", variant="primary", id="download_btn"),
+                        Button("Limpiar", variant="default", id="clear_btn"),
+                        Button("Pegar", variant="default", id="paste_btn"),
+                        Button("Sitios", variant="default", id="sites_btn"),
+                        Button("Historial", variant="default", id="history_btn"),
+                        Button("Config", variant="default", id="settings_btn"),
+                        classes="button-group"
+                    ),
+                    classes="fila-centrada",
+                ),
+                Static("", id="status", classes="status"),
+                Vertical(
+                    ProgressBar(total=100, show_eta=False, id="progress"),
+                    classes="fila-centrada",
+                ),
+                Collapsible(
+                    # RichLog, no Log: el widget Log solo acepta texto plano y
+                    # escribia el markup tal cual ("[cyan]URL:[/cyan] ..." se veia
+                    # literal en pantalla). RichLog con markup=True interpreta el
+                    # color, y wrap=True evita tener que desplazar en horizontal.
+                    RichLog(
+                        id="download_log",
+                        classes="log",
+                        wrap=True,
+                        markup=True,
+                    ),
+                    title="Log de descarga",
+                    collapsed=True,
+                    id="log_collapsible"
+                ),
                 Static(
-                    "[dim]Funciona con: posts, stories, reels, videos, audio, imagenes de Instagram, TikTok, YouTube, Twitter/X, Facebook, Reddit, Pinterest, SoundCloud, Bandcamp y 1000+ sitios[/dim]",
-                    classes="sites-hint"
+                    "[dim]Privacidad: Esta herramienta se ejecuta 100% en tu equipo. No se envian datos, URLs, ni credenciales a servidores externos. "
+                    "Solo yt-dlp (local) contacta directamente al sitio de origen para descargar el contenido que tu solicitas.[/dim]",
+                    classes="privacy-notice"
                 ),
-                classes="input-group"
+                Static("", classes="relleno-flexible"),
+                classes="main-container"
             ),
-            Static("-" * 80, classes="divider"),
-            Horizontal(
-                Button("Video", id="tab_video", variant="primary"),
-                Button("Audio", id="tab_audio", variant="default"),
-                Button("Imagen", id="tab_image", variant="default"),
-                classes="tab-group"
-            ),
-            Static("[dim]Calidad y formato se configuran en Config (S)[/dim]", classes="sites-hint"),
-            Static("-" * 80, classes="divider"),
-            Horizontal(
-                Button("Descargar (Enter)", variant="primary", id="download_btn"),
-                Button("Limpiar (Ctrl+L)", variant="default", id="clear_btn"),
-                Button("Pegar (Ctrl+V)", variant="default", id="paste_btn"),
-                Button("Sitios (I)", variant="default", id="sites_btn"),
-                Button("Historial (H)", variant="default", id="history_btn"),
-                Button("Config (S)", variant="default", id="settings_btn"),
-                classes="button-group"
-            ),
-            Static("", id="status", classes="status"),
-            ProgressBar(total=100, show_eta=False, id="progress"),
-            Collapsible(
-                Log(id="download_log", classes="log"),
-                title="Log de descarga",
-                collapsed=False,
-                id="log_collapsible"
-            ),
-            Static(
-                "[dim]Privacidad: Esta herramienta se ejecuta 100% en tu equipo. No se envian datos, URLs, ni credenciales a servidores externos. "
-                "Solo yt-dlp (local) contacta directamente al sitio de origen para descargar el contenido que tu solicitas.[/dim]",
-                classes="privacy-notice"
-            ),
-            classes="main-container"
+            classes="composer-area",
         )
         yield Footer()
 
@@ -122,8 +172,9 @@ class MainScreen(BaseScreen):
         self.url_validation = self.query_one("#url_validation", Static)
         self.progress_bar = self.query_one("#progress", ProgressBar)
         self.status = self.query_one("#status", Static)
-        self.log_widget = self.query_one("#download_log", Log)
+        self.log_widget = self.query_one("#download_log", RichLog)
         self.download_btn = self.query_one("#download_btn", Button)
+        self._ajustar_espaciadores(self.size.height)
 
         self.tab_buttons = [
             self.query_one("#tab_video", Button),
@@ -143,9 +194,22 @@ class MainScreen(BaseScreen):
         self.focus_index = 0
         self.current_media: MediaType = "video"
         self.downloading = False
-        self.url_input.focus()
+        self._ultimo_aviso = 0.0
+        self._lineas_log: list[str] = []
         self._update_button_focus()
         self._show_media_options("video")
+        # No enfocamos el input aqui: durante on_mount el layout todavia mide 0,
+        # Textual cree que no se ve, desplaza el contenedor y el logo acaba
+        # fuera de pantalla (region y=-4 medido). Lo enfocamos tras el primer
+        # refresco, cuando el input ya esta visible y no hace falta desplazar.
+        self.call_after_refresh(self._initial_focus)
+
+    def _initial_focus(self) -> None:
+        self.query_one(".main-container").scroll_y = 0
+        # scroll_visible=False: focus() encola el desplazamiento con call_later,
+        # asi que un focus normal volveria a mover el contenedor despues de este
+        # metodo y el logo se iria de pantalla. El input ya esta a la vista.
+        self.url_input.focus(scroll_visible=False)
 
     def _update_button_focus(self) -> None:
         for i, btn in enumerate(self.buttons):
@@ -206,14 +270,26 @@ class MainScreen(BaseScreen):
     def on_input_changed(self, event: Input.Changed) -> None:
         url = event.value.strip()
         logger.debug(f"Input changed: {url[:50]}...")
-        if url:
-            is_valid = self._validate_url(url)
-            if is_valid:
-                self.url_validation.update("[green]URL valida[/green]")
-            else:
-                self.url_validation.update("[yellow]URL no reconocida[/yellow]")
-        else:
+        if not url:
             self.url_validation.update("")
+        elif not self._parece_url(url):
+            self.url_validation.update("[red]No parece una URL[/red]")
+        elif self._validate_url(url):
+            self.url_validation.update("[green]Sitio conocido[/green]")
+        else:
+            # yt-dlp soporta mas de 1000 sitios: que uno no este en la lista de
+            # _validate_url no lo invalida. Antes se respondia "URL no
+            # reconocida" a cualquier sitio no listado, aunque fuera valido.
+            self.url_validation.update(
+                "[yellow]Sitio no verificado: se intentara igual[/yellow]"
+            )
+
+    @staticmethod
+    def _parece_url(url: str) -> bool:
+        """Tiene pinta de URL, sin exigir que sea de un sitio de la lista."""
+        if url.lower().startswith(("http://", "https://")):
+            return True
+        return bool(re.match(r"^[\w.-]+\.[a-z]{2,}(/|$|\?|#)", url, re.IGNORECASE))
 
     def _validate_url(self, url: str) -> bool:
         patterns = [
@@ -278,15 +354,48 @@ class MainScreen(BaseScreen):
     def action_copy(self) -> None:
         try:
             pyperclip.copy(self.url_input.value)
-            self.notify("Copiado al portapapeles", severity="information")
+            self.notify("URL copiada al portapapeles", severity="information")
         except ImportError:
             self.notify("Instala pyperclip", severity="error")
+
+    def _escribir_log(self, texto: str) -> None:
+        """Anade una linea al log visible y al buffer que se puede copiar.
+
+        Al buffer va el texto SIN markup: si se copiara el crudo, al pegarlo en
+        un informe aparecerian las etiquetas [cyan]/[red] en medio.
+        """
+        self._lineas_log.append(Text.from_markup(texto).plain)
+        self.log_widget.write(texto)
+
+    def _texto_del_log(self) -> str:
+        return "\n".join(self._lineas_log)
+
+    def action_copiar_log(self) -> None:
+        """Copia el log al portapapeles (Ctrl+C).
+
+        Se copia del buffer propio y no del widget a proposito: el log arranca
+        colapsado y RichLog no materializa sus lineas hasta que tiene tamano, asi
+        que leer del widget devolveria vacio justo cuando hace falta.
+        """
+        texto = self._texto_del_log().strip()
+        if not texto:
+            self.notify("Todavia no hay nada en el log", severity="warning")
+            return
+        try:
+            pyperclip.copy(texto)
+            self.notify(
+                f"Log copiado ({len(self._lineas_log)} lineas)",
+                severity="information",
+            )
+        except Exception as e:
+            self.notify(f"No se pudo copiar: {e}", severity="error")
 
     def action_clear(self) -> None:
         self.url_input.value = ""
         self.status.update("")
         self.progress_bar.progress = 0
         self.log_widget.clear()
+        self._lineas_log.clear()
         self.url_validation.update("")
         self.url_input.focus()
 
@@ -307,15 +416,27 @@ class MainScreen(BaseScreen):
         self.download_btn.label = "Descargando..."
         self.status.update(f"[yellow]Iniciando descarga ({self.current_media})...[/yellow]")
         self.progress_bar.progress = 0
-        self.log_widget.clear()
-        self.log_widget.write_line(f"[cyan]URL:[/cyan] {url}")
-        self.log_widget.write_line(f"[cyan]Tipo:[/cyan] {self.current_media.upper()}")
-        self.log_widget.write_line(f"[cyan]Formato:[/cyan] {fmt}")
-        self.log_widget.write_line(f"[cyan]Calidad:[/cyan] {quality}")
-        self.log_widget.write_line(f"[cyan]Destino:[/cyan] {get_download_dir()}")
-        self.log_widget.write_line("---")
+        self._preparar_log_descarga(url, fmt, quality)
 
         self.run_worker(self._do_download(url, use_cookies, fmt, quality), exclusive=True)
+
+    def _preparar_log_descarga(self, url: str, fmt: str, quality: str) -> None:
+        """Deja el log listo y DESPLEGADO al iniciar una descarga.
+
+        Se despliega al empezar, no solo al fallar: durante la descarga es donde
+        se ve que esta pasando, y al terminar queda como registro, tanto si salio
+        bien como si no. Se separa de action_download para poder probarlo sin
+        lanzar ninguna descarga de verdad.
+        """
+        self.log_widget.clear()
+        self._lineas_log.clear()
+        self._escribir_log(f"[cyan]URL:[/cyan] {url}")
+        self._escribir_log(f"[cyan]Tipo:[/cyan] {self.current_media.upper()}")
+        self._escribir_log(f"[cyan]Formato:[/cyan] {fmt}")
+        self._escribir_log(f"[cyan]Calidad:[/cyan] {quality}")
+        self._escribir_log(f"[cyan]Destino:[/cyan] {get_download_dir()}")
+        self._escribir_log("---")
+        self.query_one("#log_collapsible", Collapsible).collapsed = False
 
     def _get_selected_format(self) -> tuple[str, str]:
         if self.current_media == "video":
@@ -330,6 +451,37 @@ class MainScreen(BaseScreen):
             return fmt, "original"
         return get_video_quality(), "auto"
 
+    def _actualizar_progreso(self, avance: DownloadProgress) -> None:
+        """Refresca la barra y la linea de estado con cada aviso de yt-dlp.
+
+        La barra se actualiza en cada aviso (es barato y Textual agrupa los
+        refrescos de pantalla); la linea de estado se limita a ~3 por segundo
+        para que no parpadee ni ensucie el log.
+        """
+        if avance.porcentaje is not None:
+            self.progress_bar.progress = avance.porcentaje
+
+        ahora = time.monotonic()
+        if ahora - self._ultimo_aviso < 0.35:
+            return
+        self._ultimo_aviso = ahora
+
+        partes: list[str] = []
+        if avance.porcentaje is not None:
+            partes.append(f"{avance.porcentaje:.1f}%")
+        if avance.descargado is not None and avance.total is not None:
+            partes.append(
+                f"{formatear_bytes(avance.descargado)} de {formatear_bytes(avance.total)}"
+            )
+        velocidad = formatear_velocidad(avance.velocidad)
+        if velocidad:
+            partes.append(velocidad)
+        eta = formatear_eta(avance.eta)
+        if eta:
+            partes.append(f"faltan {eta}")
+        if partes:
+            self.status.update("[yellow]Descargando: " + " | ".join(partes) + "[/yellow]")
+
     async def _do_download(self, url: str, use_cookies: bool, fmt: str, quality: str) -> None:
         logger.info(f"Starting download: url={url[:80]}, media={self.current_media}, fmt={fmt}, quality={quality}")
         try:
@@ -341,13 +493,14 @@ class MainScreen(BaseScreen):
                 audio_format=fmt if self.current_media == "audio" else None,
                 audio_quality=quality if self.current_media == "audio" else None,
                 image_format=fmt if self.current_media == "image" else None,
+                on_progress=self._actualizar_progreso,
             )
 
             logger.info(f"Download result: success={result.success}, file={result.file_path}, error={result.error}")
             if result.success:
                 if result.file_path:
                     self.status.update("[green]Descarga completada[/green]")
-                    self.log_widget.write_line(f"[green]Archivo:[/green] {result.file_path}")
+                    self._escribir_log(f"[green]Archivo:[/green] {result.file_path}")
                     self.app.notify(f"Descarga completada: {result.file_path.name}", severity="information")
                 else:
                     self.status.update("[green]Descarga completada[/green]")
@@ -360,8 +513,8 @@ class MainScreen(BaseScreen):
                     suggestion="Revisa el log para mas detalles"
                 )
                 self.status.update(f"[red]{error.message}[/red]")
-                self.log_widget.write_line(f"[red]{error.message}[/red]")
-                self.log_widget.write_line(f"[yellow]Sugerencia:[/yellow] {error.suggestion}")
+                self._escribir_log(f"[red]{error.message}[/red]")
+                self._escribir_log(f"[yellow]Sugerencia:[/yellow] {error.suggestion}")
                 self.app.notify(f"{error.message}: {error.suggestion}", severity="error")
                 # Auto-expand log to show error
                 log_collapsible = self.query_one("#log_collapsible", Collapsible)
@@ -374,19 +527,19 @@ class MainScreen(BaseScreen):
             logger.exception(f"Download failed: {e}")
             error = DownloadError(
                 category=ErrorCategory.UNKNOWN,
-                message=str(e),
-                suggestion="Revisa el log para mas detalles"
+                message=f"{type(e).__name__}: {e}",
+                suggestion="Revisa el log en logs/ para el detalle completo"
             )
             self.status.update(f"[red]{error.message}[/red]")
-            self.log_widget.write_line(f"[red]{error.message}[/red]")
-            self.log_widget.write_line(f"[yellow]Sugerencia:[/yellow] {error.suggestion}")
+            self._escribir_log(f"[red]{error.message}[/red]")
+            self._escribir_log(f"[yellow]Sugerencia:[/yellow] {error.suggestion}")
             self.app.notify(f"{error.message}: {error.suggestion}", severity="error")
             log_collapsible = self.query_one("#log_collapsible", Collapsible)
             log_collapsible.collapsed = False
         finally:
             self.downloading = False
             self.download_btn.disabled = False
-            self.download_btn.label = "Descargar (Enter)"
+            self.download_btn.label = "Descargar"
 
     def action_sites(self) -> None:
         logger.info("Navigating to SitesScreen")

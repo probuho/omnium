@@ -63,6 +63,7 @@ def test_classify_error_known():
         ("forbidden access", ErrorCategory.PERMISSION),
         ("age restricted content", ErrorCategory.AUTH),
         ("login required", ErrorCategory.AUTH),
+        ("This video is unavailable", ErrorCategory.NOT_FOUND),
     ]
 
     for error_text, expected_category in test_cases:
@@ -73,10 +74,14 @@ def test_classify_error_known():
 
 
 def test_classify_error_unknown():
-    """Test clasificación de error desconocido."""
+    """Un error sin clasificar conserva el texto original, no lo descarta.
+
+    Antes devolvia siempre "Error desconocido" y el motivo real de yt-dlp se
+    perdia; era imposible diagnosticar nada desde la interfaz.
+    """
     error = classify_error("some completely unknown error message")
     assert error.category == ErrorCategory.UNKNOWN
-    assert error.message == "Error desconocido"
+    assert "some completely unknown error message" in error.message
     assert "log" in error.suggestion.lower()
 
 

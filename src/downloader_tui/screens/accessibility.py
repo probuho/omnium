@@ -1,8 +1,7 @@
 """Pantalla de accesibilidad."""
 
 from textual.binding import Binding
-from textual.containers import Container
-from textual.widgets import Footer, Header, Static
+from textual.widgets import Static
 
 from downloader_tui.constants import ACCESSIBILITY_TEXT
 from downloader_tui.logger import logger
@@ -10,7 +9,7 @@ from downloader_tui.screens.base import BaseScreen
 
 
 class AccessibilityScreen(BaseScreen):
-    """Pantalla de accesibilidad con lista de atajos."""
+    """Pantalla de accesibilidad con atajos de teclado."""
 
     BINDINGS = [
         Binding("escape", "go_back", "Volver"),
@@ -20,11 +19,8 @@ class AccessibilityScreen(BaseScreen):
 
     def compose(self):
         logger.info("AccessibilityScreen composed")
-        yield Header(show_clock=True)
-        yield Container(
+        yield from self.compose_pantalla(
             Static("[bold]Accesibilidad - Atajos de Teclado[/bold]", classes="title"),
             Static(ACCESSIBILITY_TEXT, classes="sites-content"),
             self.compose_nav_hint("ESC: Volver  |  Flechas: Scroll"),
-            classes="main-container"
         )
-        yield Footer()

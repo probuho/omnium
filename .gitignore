@@ -13,3 +13,26 @@ __pycache__/
 .venv/
 .vscode/
 GEMINI.md
+
+# Configuracion local (rutas absolutas de la maquina, tema elegido).
+# El programa funciona sin este archivo: usa los valores por defecto de
+# src/downloader_tui/config.py. Ver config.example.json
+config.json
+
+# Registros de ejecucion (la app y los tests escriben aqui)
+logs/
+
+# Caches de herramientas
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Cobertura
+htmlcov/
+.coverage
+.coverage.*
+
+# Empaquetado
+build/
+dist/
+*.egg-info/

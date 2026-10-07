@@ -1,8 +1,8 @@
 """Pantalla de configuración."""
 
 from textual.binding import Binding
-from textual.containers import Container, Horizontal, Vertical
-from textual.widgets import Button, Footer, Header, Input, Label, OptionList, Static
+from textual.containers import Horizontal, Vertical
+from textual.widgets import Button, Input, Label, OptionList, Static
 from textual.widgets._option_list import Option
 
 from downloader_tui.config import (
@@ -20,6 +20,10 @@ from downloader_tui.services.ffmpeg import get_ffmpeg_status_message
 class SettingsScreen(BaseScreen):
     """Pantalla de configuración con inputs editables."""
 
+    # Aqui si conviene enfocar el primer campo: es una pantalla de edicion. El
+    # campo esta arriba del todo, asi que enfocarlo no desplaza nada.
+    AUTO_FOCUS = "#download_dir_input"
+
     BINDINGS = [
         Binding("escape", "go_back", "Volver"),
         Binding("up", "cursor_up", "Arriba"),
@@ -30,8 +34,7 @@ class SettingsScreen(BaseScreen):
 
     def compose(self):
         config = load_config()
-        yield Header(show_clock=True)
-        yield Container(
+        yield from self.compose_pantalla(
             Static("[bold]Configuracion[/bold]", classes="title"),
             Vertical(
                 Label("[bold]Carpeta de descargas:[/bold]"),
@@ -83,9 +86,7 @@ class SettingsScreen(BaseScreen):
             ),
             Static("", id="config_status", classes="status"),
             self.compose_nav_hint("ESC: Volver  |  A: Accesibilidad  |  C: Creditos  |  Flechas: Navegar"),
-            classes="main-container"
         )
-        yield Footer()
 
     def on_mount(self):
         self.config_status = self.query_one("#config_status", Static)

@@ -1,15 +1,14 @@
 """Pantalla de sitios compatibles."""
 
 from textual.binding import Binding
-from textual.containers import Container
-from textual.widgets import Footer, Header, Static
+from textual.widgets import Static
 
-from ..base import BaseScreen
 from ..constants import SITES_LIST
 from ..logger import logger
+from .base import BaseScreen
 
 
-class SitesScreen(BaseScreen):  # type: ignore[misc]
+class SitesScreen(BaseScreen):
     """Pantalla de sitios compatibles."""
 
     BINDINGS = [
@@ -20,11 +19,8 @@ class SitesScreen(BaseScreen):  # type: ignore[misc]
 
     def compose(self):
         logger.info("SitesScreen composed")
-        yield Header(show_clock=True)
-        yield Container(
+        yield from self.compose_pantalla(
             Static("[bold]Sitios Compatibles (1000+)[/bold]", classes="title"),
             Static(SITES_LIST, classes="sites-content"),
             self.compose_nav_hint("ESC: Volver  |  Flechas: Scroll"),
-            classes="main-container"
         )
-        yield Footer()
