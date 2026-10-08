@@ -39,7 +39,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/demo.gif" alt="Omnium Suite Demo" width="800"/>
+  <!-- <img src="assets/demo.gif" alt="Omnium Suite Demo" width="800"/> -->
 </p>
 
 ---
@@ -219,12 +219,47 @@ make typecheck
 make lint
 ```
 
+### Arquitectura
+
+```mermaid
+graph TD
+    A[__main__.py] --> B[OmniumSuiteApp]
+    B --> C[MainScreen]
+    B --> D[Theme Manager]
+    B --> E[Logger]
+
+    C --> F[SitesScreen]
+    C --> G[HistoryScreen]
+    C --> H[SettingsScreen]
+    C --> I[QualityDetectionModal]
+
+    H --> J[AccessibilityScreen]
+    H --> K[CreditsScreen]
+
+    C --> L[DownloaderService]
+    I --> L
+    L --> M[yt-dlp subprocess]
+    L --> N[FFmpegService]
+    L --> O[QualityService]
+    L --> P[CookiesService]
+
+    H --> Q[ConfigManager]
+    Q --> R[config.json]
+
+    D --> S[Monokai Theme]
+    D --> T[textual-dark]
+    D --> U[textual-light]
+    D --> V[textual-ansi]
+```
+
 ### Estructura del Proyecto
 ```
 src/downloader_tui/
-├── app.py                 # App principal
+├── __init__.py
 ├── __main__.py            # Entry point (omnium)
+├── app.py                 # App principal + Theme registration
 ├── config.py              # Config JSON persistente
+├── logger.py              # Logging centralizado (file + console)
 ├── constants/             # ASCII_LOGO, SITES_LIST, textos
 ├── models/errors.py       # ErrorCategory, DownloadError
 ├── services/
@@ -244,7 +279,63 @@ src/downloader_tui/
 │       ├── confirm.py     # ConfirmDialog
 │       └── quality.py     # QualityDetectionModal
 ├── styles/css.py          # MONOKAI_CSS
-└── utils/validation.py    # URL validation
+└── utils/                 # Utilidades
+```
+
+### Flujo de Usuario
+
+```mermaid
+flowchart TD
+    A[Inicio] --> B[MainScreen]
+    B --> C{URL válida?}
+    C -->|Sí| D[QualityDetectionModal]
+    C -->|No| E[Mostrar error]
+    D --> F{Seleccionar calidad?}
+    F -->|Sí| G[DownloaderService]
+    F -->|No| B
+    G --> H{Descarga exitosa?}
+    H -->|Sí| I[Mostrar éxito + archivo]
+    H -->|No| J[Mostrar error + sugerencia]
+    I --> B
+    J --> B
+
+    B --> K[SettingsScreen]
+    K --> L[Guardar/Restablecer config]
+    K --> M[AccessibilityScreen]
+    K --> N[CreditsScreen]
+
+    B --> O[HistoryScreen]
+    O --> P[Ver/Eliminar archivos]
+
+    B --> Q[SitesScreen]
+```
+
+### Flujo de Datos
+
+```mermaid
+sequenceDiagram
+    participant U as Usuario
+    participant MS as MainScreen
+    participant Q as QualityModal
+    participant D as DownloaderService
+    participant Y as yt-dlp
+    participant F as FileSystem
+
+    U->>MS: Ingresa URL
+    MS->>MS: Valida URL
+    U->>MS: Ctrl+V (pegar)
+    MS->>Q: push_screen(QualityDetectionModal)
+    Q->>D: detect_available_formats()
+    D->>Y: --list-formats
+    Y-->>D: Lista de formatos
+    D-->>Q: Formatos disponibles
+    Q->>U: Selecciona calidad
+    Q->>D: dismiss({format_id, url})
+    D->>Y: download --format ...
+    Y->>F: Escribe archivo
+    F-->>D: Archivo creado
+    D-->>MS: DownloadResult
+    MS->>U: Muestra resultado
 ```
 
 ---
