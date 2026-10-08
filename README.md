@@ -4,7 +4,7 @@
 
 <h1 align="center">Omnium Suite</h1>
 <p align="center">
-  <strong>Universal Video Downloader TUI</strong> — Terminal moderna, modular y extensible para descargar video, audio e imágenes de 1000+ sitios.
+  <strong>Universal Multimedia Downloader TUI</strong> — Terminal moderna, modular y extensible para descargar video, audio e imágenes de 1000+ sitios.
 </p>
 
 <p align="center">

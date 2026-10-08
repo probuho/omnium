@@ -13,7 +13,7 @@ LOGO_SUITE = Text(
     style=Style(color="#66d9ef", bold=False),
 )
 
-ASCII_LOGO = LOGO_OMNIUM.append("\n").append_text(LOGO_SUITE)
+ASCII_LOGO = LOGO_OMNIUM.copy().append("\n").append_text(LOGO_SUITE)
 
 ACCESSIBILITY_TEXT = """
 Atajos Globales (disponibles en todas las pantallas):
