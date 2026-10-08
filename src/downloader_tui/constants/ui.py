@@ -1,16 +1,19 @@
-"""Constantes de UI: textos, logo ASCII, accesibilidad, créditos."""
+"""Constantes de UI: textos, logo, accesibilidad, créditos."""
 
-# Logo en ASCII puro (sin Unicode, seguro en cualquier code page) y de ancho
-# fijo: las tres lineas miden exactamente 56 columnas, asi que no puede
-# desalinearse ni partirse en un terminal de 80 columnas.
-# Sustituye al banner anterior, que era un patron de ondas con el texto cortado
-# ("D o w n l o a d") y lineas de anchos distintos (63, 65 y 66).
-# Sin subtitulo: "Universal Video Downloader" ya lo dice el Header, y esa fila
-# hacia falta para que el ritmo de espaciado entre grupos quepa a 80x24.
-ASCII_LOGO = """\
-+======================================================+
-|               O M N I U M   S U I T E                |
-+======================================================+"""
+from rich.style import Style
+from rich.text import Text
+
+LOGO_OMNIUM = Text(
+    "O M N I U M",
+    style=Style(color="#ae81ff", bold=True),
+)
+
+LOGO_SUITE = Text(
+    "S U I T E",
+    style=Style(color="#66d9ef", bold=False),
+)
+
+ASCII_LOGO = LOGO_OMNIUM.append("\n").append_text(LOGO_SUITE)
 
 ACCESSIBILITY_TEXT = """
 Atajos Globales (disponibles en todas las pantallas):

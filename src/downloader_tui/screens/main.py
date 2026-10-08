@@ -29,7 +29,7 @@ from downloader_tui.config import (
     get_video_quality,
     load_config,
 )
-from downloader_tui.constants import ASCII_LOGO
+from downloader_tui.constants import LOGO_OMNIUM, LOGO_SUITE
 from downloader_tui.logger import logger
 from downloader_tui.models.errors import DownloadError, ErrorCategory
 from downloader_tui.screens.base import BaseScreen
@@ -89,7 +89,8 @@ class MainScreen(BaseScreen):
                 # verticalmente en vez de amontonado arriba. Cuando no sobra
                 # altura (80x24) se quedan en 0 y el area solo se desplaza.
                 Static("", classes="relleno-flexible"),
-                Static(ASCII_LOGO, classes="ascii-logo"),
+                Static(LOGO_OMNIUM, classes="logo-omnium"),
+                Static(LOGO_SUITE, classes="logo-suite"),
                 Vertical(
                     Input(
                         placeholder="Pegar enlace aquí...",

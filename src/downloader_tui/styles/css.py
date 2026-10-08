@@ -27,7 +27,7 @@ Screen {
     align-horizontal: center;
 }
 
-.ascii-logo {
+.logo-omnium {
     text-align: center;
     color: #ae81ff;
     height: auto;
